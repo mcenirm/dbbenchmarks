@@ -1,0 +1,78 @@
+#!/bin/bash
+
+TOP="$( cd "$( dirname "$( dirname "${BASH_SOURCE[0]}" ) " )" && /bin/pwd )"
+HELPERS="$TOP/helpers"
+DOWNLOADS="$TOP/downloads"
+SCRIPTS="$TOP/scripts"
+SETTINGS="$TOP/settings"
+
+mkdir -p "$HELPERS" "$DOWNLOADS" || exit $?
+
+PATH="${SCRIPTS}:$HELPERS/bin:$PATH"
+
+############################################################
+
+prepare () {
+  check_cmake
+}
+
+############################################################
+
+check_cmake () {
+  checkexe cmake && return 0
+  requires curl \
+  && . "$SETTINGS/cmake.cfg" \
+  && download "$cmake_download_url" "$cmake_download_file" \
+  && install_cmake "$DOWNLOADS/$cmake_download_file" "$HELPERS"
+}
+
+############################################################
+
+checkexe () {
+  which "$1" 2>/dev/null 1>/dev/null
+}
+
+requires () {
+  local caller=${FUNCNAME[1]}
+  local missing=()
+  for exe in "$@" ; do
+    checkexe "$exe" || missing+=( "$exe" )
+  done
+  if [ ${#missing[@]} -gt 0 ] ; then
+    echo >&2 "Missing requirements: $caller requires ""${missing[@]}"
+    return 2
+  fi
+}
+
+download () {
+  requires curl || return $?
+  local url=$1
+  local file=${2:-${url##*/}}
+  if [ "${file#*/}" == "$file" ] ; then
+    file="$DOWNLOADS/$file"
+  fi
+  if [ ! -s "$file" ] ; then
+    curl -sgkLR -o "$file" "$url"
+  fi
+}
+
+############################################################
+
+check_ansible () {
+  checkexe ansible-playbook || install_ansible || exit $?
+  #[ -d ansible ] || git clone https://github.com/ansible/ansible.git
+}
+
+install_pip () {
+  requires python \
+  && download 'https://bootstrap.pypa.io/get-pip.py' \
+  && python "$DOWNLOADS/get-pip.py" --isolated --user
+}
+
+install_ansible () {
+  checkexe pip || install_pip
+}
+
+############################################################
+
+prepare
