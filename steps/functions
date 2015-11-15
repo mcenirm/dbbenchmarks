@@ -1,0 +1,74 @@
+#!/bin/bash
+# :sw=2:ts=2:et:
+
+TOP="$( cd "$( dirname "$( dirname "${BASH_SOURCE[0]}" ) " )" && /bin/pwd )"
+HELPERS="$TOP/helpers"
+DOWNLOADS="$TOP/downloads"
+SCRIPTS="$TOP/scripts"
+SETTINGS="$TOP/settings"
+
+mkdir -p "$HELPERS" "$DOWNLOADS" || exit $?
+
+PATH="${SCRIPTS}:$HELPERS/bin:$PATH"
+export LD_LIBRARY_PATH="$HELPERS/lib64:$LD_LIBRARY_PATH"
+
+############################################################
+
+checkexe () {
+  which "$1" 2>/dev/null 1>/dev/null
+}
+
+requires () {
+  local caller=${FUNCNAME[1]}
+  local missing=()
+  for exe in "$@" ; do
+    checkexe "$exe" || missing+=( "$exe" )
+  done
+  if [ ${#missing[@]} -gt 0 ] ; then
+    echo >&2 "Missing requirements: $caller requires ${missing[@]}"
+    return 2
+  fi
+}
+
+expand_download_file () {
+  local file=$1
+  if [ "${file#*/}" == "$file" ] ; then
+    file="$DOWNLOADS/$file"
+  fi
+  echo "$file"
+}
+
+download () {
+  requires curl || return $?
+  local url=$1
+  local file="$( expand_download_file "${2:-${url##*/}}" )"
+  if [ ! -s "$file" ] ; then
+    curl -sgkLR -o "$file" "$url"
+  fi
+}
+
+checksum_file () {
+  local file=$1
+  local cktype=$2
+  local cksum=$3
+
+  ${cktype}sum -c <( echo "$cksum  $file" ) 2>/dev/null >/dev/null
+}
+
+check_download () {
+  local file="$( expand_download_file "$1" )"
+  local cktype=$2
+  local cksum=$3
+
+  checksum_file "$file" "$cktype" "$cksum"
+}
+
+load_settings () {
+  local name=$1
+  source "$SETTINGS/$name.cfg"
+}
+
+############################################################
+
+source "${BASH_SOURCE[0]}"-pkg-config || exit $?
+source "${BASH_SOURCE[0]}"-python || exit $?

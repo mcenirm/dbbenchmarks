@@ -19,7 +19,10 @@ set -e
 set -x
 
 tar xf "$tarfile" -C "$build_dir"
-cd "$build_dir/cmake-"*
-./bootstrap --prefix="$prefix"
+cd "$build_dir/mysql-"*
+cmake . \
+    -DBUILD_CONFIG=mysql_release \
+    -DIGNORE_AIO_CHECK=1 \
+    -DCMAKE_INSTALL_PREFIX="$prefix"
 make
 make install

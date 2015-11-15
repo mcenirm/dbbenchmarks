@@ -1,0 +1,32 @@
+#!/bin/bash
+
+. "$( dirname "${BASH_SOURCE[0]}" )/functions" || exit $?
+
+Usage () { cat >&2 <<EOF
+Usage: $0 <dbname>
+Deploy the named database product
+EOF
+}
+
+if [ $# -ne 1 ] ; then
+  Usage
+  exit 1
+fi
+
+dbname=$1
+
+set -e
+
+load_settings "db_$dbname"
+db_download_file="$( expand_download_file "$db_download_file" )"
+
+download "$db_download_url" "$db_download_file"
+cktype='md5'
+cksum=${db_download_md5}
+if [ -n "$db_download_sha256" ] ; then
+  cktype='sha256'
+  cksum=${db_download_sha256}
+fi
+check_download "$db_download_file" "$cktype" "$cksum"
+
+"install_$dbname" "$db_download_file" "$TOP/db_$dbname"

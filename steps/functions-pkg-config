@@ -1,0 +1,24 @@
+#!/bin/bash
+# :sw=2:ts=2:et:
+
+export PKG_CONFIG_PATH="$HELPERS/lib/pkgconfig"
+
+############################################################
+
+checkpkg () {
+  pkg-config --exists "$1"
+}
+
+requirespkg () {
+  local caller=${FUNCNAME[1]}
+  local missing=()
+  for pkg in "$@" ; do
+    checkpkg "$pkg" || missing+=( "$pkg" )
+  done
+  if [ ${#missing[@]} -gt 0 ] ; then
+    echo >&2 "Missing requirements: $caller requirespkg ${missing[@]}"
+    return 2
+  fi
+}
+
+############################################################

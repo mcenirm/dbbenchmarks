@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Usage () { cat >&2 <<EOF
-Usage: $0 <tarfile> <prefix>
+Usage: $0 <tarfile> <installdir>
 EOF
 }
 
@@ -19,7 +19,9 @@ set -e
 set -x
 
 tar xf "$tarfile" -C "$build_dir"
-cd "$build_dir/cmake-"*
-./bootstrap --prefix="$prefix"
-make
-make install
+cd "$build_dir/xpra-"*
+./setup.py install --home=$(mktemp -d)
+exit 1
+#./bootstrap --prefix="$prefix"
+#make
+#make install

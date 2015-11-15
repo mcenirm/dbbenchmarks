@@ -1,0 +1,30 @@
+#!/bin/bash
+
+Usage () { cat >&2 <<EOF
+Usage: $0 <installfile> <installdir>
+EOF
+}
+
+if [ $# -ne 2 ] ; then
+  Usage
+  exit 2
+fi
+
+installfile=$1
+installdir=$2
+
+set -e
+set -x
+
+chmod -c +x "$installfile"
+responsefile=$(mktemp)
+cat > "$responsefile" <<EOF
+InstallDir: $installdir
+InstallMode: Silent
+InstallType: Typical
+LaunchApplication: Yes
+ProgramFolderName: HammerDB
+SelectedComponents: Default Component
+EOF
+
+"$installfile" --response-file "$responsefile"
