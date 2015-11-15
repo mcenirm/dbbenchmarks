@@ -69,6 +69,3 @@ load_settings () {
 }
 
 ############################################################
-
-source "${BASH_SOURCE[0]}"-pkg-config || exit $?
-source "${BASH_SOURCE[0]}"-python || exit $?

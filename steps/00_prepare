@@ -5,40 +5,11 @@
 ############################################################
 
 prepare () {
-  check_xpra
-  exit 1
   check_cmake
   check_hammerdb
 }
 
 ############################################################
-
-check_libffi () {
-  checkpkg libffi && return 0
-  requires curl gcc make \
-  && load_settings libffi \
-  && download "$libffi_download_url" "$libffi_download_file" \
-  && install_libffi "$DOWNLOADS/$libffi_download_file" "$HELPERS"
-}
-
-check_pip () {
-  checkexe pip && return 0
-  requires curl python2.7 \
-  && check_libffi \
-  && download 'https://bootstrap.pypa.io/get-pip.py' \
-  && python2.7 "$DOWNLOADS/get-pip.py" --isolated --user \
-  && pip_install -U 'requests[security]'
-}
-
-check_xpra () {
-  checkexe xpra && return 0
-  requires curl python2.7 \
-  && check_pip \
-  && pip_install -U cython \
-  && load_settings xpra \
-  && download "$xpra_download_url" "$xpra_download_file" \
-  && install_xpra "$DOWNLOADS/$xpra_download_file" "$HELPERS"
-}
 
 check_cmake () {
   checkexe cmake && return 0
@@ -54,23 +25,6 @@ check_hammerdb () {
   && load_settings hammerdb \
   && download "$hammerdb_download_url" "$hammerdb_download_file" \
   && install_hammerdb "$DOWNLOADS/$hammerdb_download_file" "$HELPERS/hammerdb"
-}
-
-############################################################
-
-check_ansible () {
-  checkexe ansible-playbook || install_ansible || exit $?
-  #[ -d ansible ] || git clone https://github.com/ansible/ansible.git
-}
-
-install_ansible () {
-  checkexe pip || install_pip
-}
-
-check_virtualenv () {
-  checkexe virtualenv && return 0
-  requires pip \
-  && pip_install -U virtualenv
 }
 
 ############################################################
