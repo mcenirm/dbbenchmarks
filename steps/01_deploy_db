@@ -13,7 +13,7 @@ if [ $# -ne 1 ] ; then
   exit 1
 fi
 
-dbname=$1
+set_db_vars "$1"
 
 set -e
 
@@ -29,4 +29,18 @@ if [ -n "$db_download_sha256" ] ; then
 fi
 check_download "$db_download_file" "$cktype" "$cksum"
 
-"install_$dbname" "$db_download_file" "$TOP/db_$dbname"
+if [ -d "$db_data" ] ; then
+  dbctl stop
+fi
+
+if ! [ -d "$db_prefix" ] ; then
+  "install_$dbname" "$db_download_file" "$db_prefix"
+  if [ -d "$db_data" ] ; then
+    rm -rf "$db_data"
+  fi
+fi
+
+if ! [ -d "$db_data" ] ; then
+  dbctl init
+  new_db_logs
+fi

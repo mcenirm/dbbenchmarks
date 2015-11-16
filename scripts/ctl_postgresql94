@@ -1,0 +1,40 @@
+#!/bin/bash
+
+Usage () { cat >&2 <<EOF
+Usage: $0 <prefix> <datadir> <logsdir> [...]
+EOF
+}
+
+if [ $# -lt 3 ] ; then
+  Usage
+  exit 2
+fi
+
+prefix=$1 ; shift
+datadir=$1 ; shift
+logsdir=$1 ; shift
+
+set -e
+
+export PGDATA="$datadir"
+export PATH="$prefix/bin:$PATH"
+
+case "$1" in
+  init)
+    shift
+    initdb --username=postgres "$@"
+    ;;
+  stop)
+    shift
+    if pg_ctl -s status ; then
+      pg_ctl stop "$@"
+    fi
+    ;;
+  start)
+    shift
+    pg_ctl restart -w -l "$logsdir/postgres-$(date -u '+%Y%m%d-%H%M%S').log" "$@"
+    ;;
+  *)
+    pg_ctl "$@"
+    ;;
+esac

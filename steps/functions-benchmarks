@@ -1,0 +1,48 @@
+#!/bin/bash
+# :sw=2:ts=2:et:
+
+BENCHMARKS_DIR="$TOP/benchmarks"
+
+mkdir -p "$BENCHMARKS_DIR" || exit $?
+
+############################################################
+
+set_benchmark_vars () {
+  load_settings "db_${1:?Expected database name}"
+  set_db_vars "$1"
+  load_settings "benchmark_${2:?Expected benchmark name}"
+  benchmark_prefix="$BENCHMARKS_DIR/${dbname}-${benchmark_name}"
+  hammerdb_prefix=${benchmark_prefix}/hammerdb
+}
+
+prepare_hammerdb () {
+  if [ -d "$hammerdb_prefix" ] ; then
+    rm -r "$hammerdb_prefix"
+  fi
+  mkdir -p "$hammerdb_prefix"
+  for i in hammerdb.tcl hdb-modules lib bin hdb-components include ; do
+    ln -s "$HELPERS/hammerdb/$i" "$hammerdb_prefix/$i"
+  done
+  sed \
+      -e "s#<rdbms>Oracle</rdbms>#<rdbms>${db_product}</rdbms>#" \
+      -e "s#<bm>TPC-C</bm>#<bm>${benchmark_title}</bm>#" \
+      -e "s#<show_output>0</show_output>#<show_output>1</show_output>#" \
+      -e "s#<log_to_temp>0</log_to_temp>#<log_to_temp>1</log_to_temp>#" \
+      -e "s#<unique_log_name>0</unique_log_name>#<unique_log_name>1</unique_log_name>#" \
+      < "$HELPERS/hammerdb/config.xml" \
+      > "$hammerdb_prefix/config.xml"
+  cat > "$hammerdb_prefix.bash" <<EOF
+#!/bin/bash
+PATH=${db_prefix}/bin:$PATH
+export LD_LIBRARY_PATH=${db_prefix}/lib64:${db_prefix}/lib:$LD_LIBRARY_PATH
+export TMPDIR=${benchmark_prefix}/tmp
+export TMP=\$TMPDIR
+mkdir -p "\$TMPDIR"
+cd $hammerdb_prefix
+./hammerdb.tcl
+mv -v /tmp/hammerdb_*.log "\$TMPDIR"/
+EOF
+  chmod +x "$hammerdb_prefix.bash"
+}
+
+############################################################

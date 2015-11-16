@@ -1,0 +1,37 @@
+#!/bin/bash
+# :sw=2:ts=2:et:
+
+DATA="$TOP/data"
+LOGS="$TOP/logs"
+
+mkdir -p "$DATA" "$LOGS" || exit $?
+
+############################################################
+
+set_db_vars () {
+  dbname=${1:?Expected database name}
+  db_prefix="$TOP/db_$dbname"
+  db_data="$DATA/$dbname"
+  db_logs=''
+  local candidate previous
+  for candidate in "$LOGS/$dbname"-* ; do
+    if [ -d "$previous" ] ; then
+      rmdir --ignore-fail-on-non-empty "$previous"
+    fi
+    if [ -d "$candidate" ] ; then
+      db_logs=$candidate
+    fi
+    previous=candidate
+  done
+}
+
+new_db_logs () {
+  db_logs="$LOGS/${dbname:?Expected database name}-$( date -u +%Y%m%d-%H%M%S )"
+  mkdir -p "$db_logs" || exit $?
+}
+
+dbctl () {
+  "ctl_${dbname:?Expected database name}" "$db_prefix" "$db_data" "$db_logs" "$@"
+}
+
+############################################################

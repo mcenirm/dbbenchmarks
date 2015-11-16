@@ -1,3 +1,6 @@
 /downloads/
 /helpers/
 /db_*
+/data/
+/logs/
+/benchmarks/

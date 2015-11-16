@@ -69,3 +69,9 @@ load_settings () {
 }
 
 ############################################################
+
+for _extra in "${BASH_SOURCE[0]}"-* ; do
+  if [ -r "$_extra" ] ; then
+    source "$_extra" || exit $?
+  fi
+done

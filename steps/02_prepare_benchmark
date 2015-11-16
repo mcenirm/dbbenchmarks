@@ -1,0 +1,21 @@
+#!/bin/bash
+
+. "$( dirname "${BASH_SOURCE[0]}" )/functions" || exit $?
+
+Usage () { cat >&2 <<EOF
+Usage: $0 <dbname> <benchmark>
+EOF
+}
+
+if [ $# -ne 2 ] ; then
+  Usage
+  exit 1
+fi
+
+set -e
+
+set_benchmark_vars "$1" "$2"
+
+prepare_hammerdb
+
+dbctl start
