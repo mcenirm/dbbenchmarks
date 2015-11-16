@@ -1,0 +1,56 @@
+#!/bin/bash
+
+Usage () { cat >&2 <<EOF
+Usage: $0 <prefix> <datadir> <logsdir> [...]
+EOF
+}
+
+if [ $# -lt 3 ] ; then
+  Usage
+  exit 2
+fi
+
+prefix=$1 ; shift
+datadir=$1 ; shift
+logsdir=$1 ; shift
+
+set -e
+
+export PATH="$prefix/bin:$PATH"
+
+common_opts=(
+    --basedir="$prefix"
+    --datadir="$datadir"
+)
+pidfile="$datadir/mysqld.pid"
+
+start () {
+  mysqld_safe "${common_opts[@]}" \
+      --pid-file="$pidfile" \
+      --log-error="$logsdir/mysqld-$(date -u '+%Y%m%d-%H%M%S').log"
+      --defaults-file="$datadir/my.cnf"
+}
+
+stop () {
+  [ -r "$pidfile" ] && kill -TERM $(cat "$pidfile")
+}
+
+case "$1" in
+  init)
+    shift
+    "$prefix/scripts/mysql_install_db" "${common_opts[@]}" --no-defaults
+    mv "$prefix/my.cnf" "$datadir/my.cnf"
+    sleep
+    start
+    sleep 2
+    mysql_secure_installation
+    stop
+    ;;
+  stop)
+    shift
+    stop
+    ;;
+  start)
+    shift
+    ;;
+esac
