@@ -6,6 +6,8 @@ LOGS="$TOP/logs"
 
 mkdir -p "$DATA" "$LOGS" || exit $?
 
+DB_PORT=7654
+
 ############################################################
 
 set_db_vars () {
@@ -31,7 +33,7 @@ new_db_logs () {
 }
 
 dbctl () {
-  "ctl_${dbname:?Expected database name}" "$db_prefix" "$db_data" "$db_logs" "$@"
+  "ctl_${dbname:?Expected database name}" "$db_prefix" "$DB_PORT" "$db_data" "$db_logs" "$@"
 }
 
 ############################################################

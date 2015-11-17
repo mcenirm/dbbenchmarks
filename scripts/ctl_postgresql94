@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Usage () { cat >&2 <<EOF
-Usage: $0 <prefix> <datadir> <logsdir> [...]
+Usage: $0 <prefix> <port> <datadir> <logsdir> [...]
 EOF
 }
 
@@ -11,12 +11,14 @@ if [ $# -lt 3 ] ; then
 fi
 
 prefix=$1 ; shift
+port=$1 ; shift
 datadir=$1 ; shift
 logsdir=$1 ; shift
 
 set -e
 
 export PGDATA="$datadir"
+export PGPORT="$port"
 export PATH="$prefix/bin:$PATH"
 
 case "$1" in
@@ -32,7 +34,7 @@ case "$1" in
     ;;
   start)
     shift
-    pg_ctl restart -w -l "$logsdir/postgres-$(date -u '+%Y%m%d-%H%M%S').log" "$@"
+    pg_ctl restart -w -o "-p $port" -l "$logsdir/postgres-$(date -u '+%Y%m%d-%H%M%S').log" "$@"
     ;;
   *)
     pg_ctl "$@"
