@@ -25,10 +25,12 @@ common_opts=(
 pidfile="$datadir/mysqld.pid"
 
 start () {
-  mysqld_safe "${common_opts[@]}" \
+  mysqld_safe \
+      --defaults-file="$datadir/my.cnf" \
+      "${common_opts[@]}" \
       --pid-file="$pidfile" \
-      --log-error="$logsdir/mysqld-$(date -u '+%Y%m%d-%H%M%S').log"
-      --defaults-file="$datadir/my.cnf"
+      --log-error="$logsdir/mysqld-$(date -u '+%Y%m%d-%H%M%S').log" \
+  </dev/null >/dev/null 2>/dev/null &
 }
 
 stop () {
@@ -40,10 +42,10 @@ case "$1" in
     shift
     "$prefix/scripts/mysql_install_db" "${common_opts[@]}" --no-defaults
     mv "$prefix/my.cnf" "$datadir/my.cnf"
-    sleep
+    sleep 1
     start
     sleep 2
-    mysql_secure_installation
+    mysqladmin -u root password mysql
     stop
     ;;
   stop)
@@ -52,5 +54,6 @@ case "$1" in
     ;;
   start)
     shift
+    start
     ;;
 esac

@@ -41,6 +41,6 @@ if ! [ -d "$db_prefix" ] ; then
 fi
 
 if ! [ -d "$db_data" ] ; then
-  dbctl init
   new_db_logs
+  dbctl init
 fi
