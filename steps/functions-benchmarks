@@ -24,7 +24,7 @@ prepare_hammerdb () {
     ln -s "$HELPERS/hammerdb/$i" "$hammerdb_prefix/$i"
   done
   sed \
-      -e "s#<rdbms>Oracle</rdbms>#<rdbms>${db_product}</rdbms>#" \
+      -e "s#<rdbms>Oracle</rdbms>#<rdbms>${hammerdb_rdbms_name}</rdbms>#" \
       -e "s#<bm>TPC-C</bm>#<bm>${benchmark_title}</bm>#" \
       -e "s#<show_output>0</show_output>#<show_output>1</show_output>#" \
       -e "s#<log_to_temp>0</log_to_temp>#<log_to_temp>1</log_to_temp>#" \

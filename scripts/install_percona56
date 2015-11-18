@@ -1,0 +1,31 @@
+#!/bin/bash
+
+Usage () { cat >&2 <<EOF
+Usage: $0 <tarfile> <prefix>
+EOF
+}
+
+if [ $# -ne 2 ] ; then
+  Usage
+  exit 2
+fi
+
+tarfile=$1
+prefix=$2
+
+build_dir=$( mkbuilddir )
+
+set -e
+set -x
+
+tar xf "$tarfile" -C "$build_dir"
+cd "$build_dir/percona-server-"*
+cmake . \
+    -DBUILD_CONFIG=mysql_release \
+    -DIGNORE_AIO_CHECK=1 \
+    -DCMAKE_INSTALL_PREFIX="$prefix"
+make
+make install
+for lpsc in "$prefix/lib/libperconaserverclient"* ; do
+  ln -s "$(basename "$lpsc")" "${lpsc/libperconaserverclient/libmysqlclient}"
+done
